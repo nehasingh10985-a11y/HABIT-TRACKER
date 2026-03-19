@@ -2,9 +2,19 @@
 
 > **A GenZ-style daily habit tracker** — streaks, reminders, celebrations, and roasts! Built with React + Vite + Tailwind CSS. No cap, built different fr fr 🐐
 
+## 🌐 Live Demo
+
+**👉 [habit-tracker-eta-blond.vercel.app](https://habit-tracker-eta-blond.vercel.app)**
+
+## 📂 Repository
+
+**👉 [github.com/nehasingh10985-a11y/HABIT-TRACKER](https://github.com/nehasingh10985-a11y/HABIT-TRACKER)**
+
+---
+
 ## ✨ Features
 
-### Dashboard
+### 🏠 Dashboard
 
 - Add habits with custom **H / M / S countdown timers**
 - Live timer badge on each habit pill — pulses red when running out ⏳
@@ -12,46 +22,54 @@
 - Today's checklist with **streak badges** 🔥
 - Alarm popup with sad GIF when deadline is missed 😭
 
-### GenZ Celebration System
+### 🎉 GenZ Celebration System
 
 - Each habit check shows a unique meme popup
   - `🗿 "Bro woke up and chose violence fr fr 💀"`
   - `🐐 "3 habits? Sheesh bestie, GOAT behavior!"`
-- All habits done → **full-screen epic celebration** with rotating emojis + confetti + GenZ hashtags
+- All habits done → **full-screen epic celebration** with:
+  - Rotating emojis 🗿 → 💀 → 🐐 → 👑 → 🔥
+  - Confetti rain 🎊
+  - GenZ hashtags `#NoCapBehavior #SigmaGrindset`
 
-### Smart Reminder System
+### 🔔 Smart Reminder System
 
 - Reminders at **2 min, 5 min, 30 min, then every hour** after app opens
 - **Snooze escalation** — 1s → 3s → 5s → 7s → 9s with live countdown ⏱️
-- Roast messages on every snooze: `💀 "Tumse na ho payega!"`
+- Roast messages on every snooze:
+  - `💀 "Tumse na ho payega!"`
+  - `🗿 "Bro really said baad mein AGAIN?"`
 - **"Ab karta hoon! 💪"** → cute GenZ go message popup
 - Background browser notifications with `requireInteraction`
 
-### Stats Page
+### 📊 Stats Page
 
 - Last 30 days overall consistency %
 - **Best day vs Worst day** 🏆 😬
 - **Habit comparison bar chart**
 - Per-habit cards with streak + consistency
 
-### Weekly Summary
+### 📅 Weekly Summary
 
 - This week's score with progress ring
 - Per-habit progress bars + daily breakdown grid Mon→Sun
 - Last 4 weeks trend
 
-### Missed Tasks
+### ❌ Missed Tasks
 
 - View missed habits — **Today / Week / Month / Year / All Time**
 - Filter by habit + done vs missed split bar
 
-### Achievements
+### 🏆 Achievements
 
 - **Trading card style** with rarity: `Common` `Rare` `Epic` `Legendary`
-- **XP + Level system**: Noob 🥚 → Apprentice 🌱 → Grinder 💪 → Sigma 🔥 → GOAT 🐐 → LEGEND 👑
+- **XP + Level system**:
+  ```
+  Noob 🥚 → Apprentice 🌱 → Grinder 💪 → Sigma 🔥 → GOAT 🐐 → LEGEND 👑
+  ```
 - Legendary glow animation + hover scale effects
 
-### Sound Effects
+### 🔊 Sound Effects
 
 | Action         | Sound                 |
 | -------------- | --------------------- |
@@ -64,12 +82,12 @@
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/habit-tracker.git
-cd habit-tracker
+git clone https://github.com/nehasingh10985-a11y/HABIT-TRACKER.git
+cd HABIT-TRACKER
 
 # Install
 npm install
@@ -80,11 +98,10 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) 🎉
 
-### Deploy to Vercel
+### Build for Production
 
 ```bash
 npm run build
-vercel
 ```
 
 ---
@@ -160,6 +177,10 @@ src/
 
 ---
 
-Made with ❤️ using React + Vite + Tailwind
+## 🌐 Deployment
 
-> No cap, built different fr fr 🐐 `#SigmaGrindset` `#MainCharacter`
+Deployed on **Vercel** — [habit-tracker-eta-blond.vercel.app](https://habit-tracker-eta-blond.vercel.app)
+
+Auto-deploys on every push to `main` branch! 🚀
+
+--
