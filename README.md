@@ -4,7 +4,7 @@
 
 ## 🌐 Live Demo
 
-**👉 [habit-tracker-eta-blond.vercel.app](https://habit-tracker-eta-blond.vercel.app)**
+**👉 [habit-tracker-eta-blond.vercel.app](habit-tracker-three-phi-36.vercel.app)**
 
 ## 📂 Repository
 
@@ -179,7 +179,7 @@ src/
 
 ## 🌐 Deployment
 
-Deployed on **Vercel** — [habit-tracker-eta-blond.vercel.app](https://habit-tracker-eta-blond.vercel.app)
+Deployed on **Vercel** — [habit-tracker-eta-blond.vercel.app](habit-tracker-three-phi-36.vercel.app)
 
 Auto-deploys on every push to `main` branch! 🚀
 
