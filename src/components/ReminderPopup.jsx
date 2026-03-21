@@ -234,23 +234,23 @@ export default function ReminderPopup({
   const getPendingHabits = () => habits.filter((h) => !todayChecked[h]);
   const allDone = habits.length > 0 && habits.every((h) => todayChecked[h]);
 
-  const startRepeatingAlarm = () => {
-    try {
-      playReminderSound();
-    } catch (e) {}
-    if (alarmInterval.current) clearInterval(alarmInterval.current);
-    alarmInterval.current = setInterval(() => {
-      try {
-        playReminderSound();
-      } catch (e) {}
-    }, 3000);
-  };
-
+  // ✅ FIX: Strict interval control to stop sound overlapping
   const stopRepeatingAlarm = () => {
     if (alarmInterval.current) {
       clearInterval(alarmInterval.current);
       alarmInterval.current = null;
     }
+  };
+
+  const startRepeatingAlarm = () => {
+    stopRepeatingAlarm(); // Purana alarm clear karna zaroori hai
+    const play = () => {
+      try {
+        playReminderSound();
+      } catch (e) {}
+    };
+    play(); // Pehli baar turant bajao
+    alarmInterval.current = setInterval(play, 3000); // Har 3 sec mein repeat karo
   };
 
   useEffect(() => {
@@ -302,7 +302,7 @@ export default function ReminderPopup({
     setSnoozeCount(0);
     setCountdown(0);
     setGoMsg(null);
-    startRepeatingAlarm();
+    startRepeatingAlarm(); // Alarm shuru karo jab popup aaye
     sendNotification(emoji, msg, pendingHabits);
   };
 
@@ -339,7 +339,7 @@ export default function ReminderPopup({
   }, [allDone, habits.length, firedKeys]);
 
   const handleSnooze = () => {
-    stopRepeatingAlarm();
+    stopRepeatingAlarm(); // 🔥 Alarm band karo snooze dabane pe
     const idx = Math.min(snoozeCount, SNOOZE_SECONDS.length - 1);
     const sec = SNOOZE_SECONDS[idx];
     setSnoozed(true);
@@ -365,7 +365,7 @@ export default function ReminderPopup({
       }
       setSnoozed(false);
       setCountdown(0);
-      startRepeatingAlarm();
+      startRepeatingAlarm(); // 🔥 Snooze khatam hone ke baad dobara alarm chalao
       setPopup((prev) => (prev ? { ...prev, _ts: Date.now() } : null));
     }, sec * 1000);
   };
@@ -375,11 +375,11 @@ export default function ReminderPopup({
     setCountdown(0);
     if (snoozeTimer.current) clearTimeout(snoozeTimer.current);
     if (countdownInterval.current) clearInterval(countdownInterval.current);
-    startRepeatingAlarm();
+    startRepeatingAlarm(); // Wapas alarm chalu karo agar snooze cancel kiya toh
   };
 
   const handleGo = () => {
-    stopRepeatingAlarm();
+    stopRepeatingAlarm(); // 🔥 Alarm turant band karo kyunki user ready hai
     const msg = GO_MSGS[Math.floor(Math.random() * GO_MSGS.length)];
     if (snoozeTimer.current) clearTimeout(snoozeTimer.current);
     if (countdownInterval.current) clearInterval(countdownInterval.current);
@@ -406,12 +406,14 @@ export default function ReminderPopup({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.75)",
+        background: "rgba(0, 0, 0, 0.5)", // ✅ Sirf 50% dark taaki screen halki si dikhe
         zIndex: 10000,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         animation: "fadeIn 0.3s ease",
+        backdropFilter: "blur(2px)", // ✅ Halka sa blur effect
+        WebkitBackdropFilter: "blur(2px)",
       }}
     >
       <div
@@ -426,6 +428,7 @@ export default function ReminderPopup({
           animation: "popIn 0.4s ease",
           transition: "all 0.3s ease",
           position: "relative",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.3)", // Halki shadow thoda depth dene ke liye
         }}
       >
         {/* GIFs preloaded */}
