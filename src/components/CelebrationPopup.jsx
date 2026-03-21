@@ -1,28 +1,31 @@
 import { useEffect, useState, useRef } from "react";
 
 const CHECK_MSGS = [
-  { count: 1, emoji: "🌱", msg: "Pehli habit! Shuru ho gaye!" },
-  { count: 2, emoji: "✌️", msg: "2 habits! Chal rahe ho!" },
-  { count: 3, emoji: "💪", msg: "3 habits! Mast chal raha hai!" },
-  { count: 4, emoji: "⚡", msg: "4 habits! Energy hai tum mein!" },
-  { count: 5, emoji: "🎯", msg: "5 habits! Target pe ho!" },
-  { count: 6, emoji: "🚀", msg: "6 habits! Rocket ban gaye!" },
+  { count: 1, emoji: "🌱", msg: "Pehli habit! Main character era shuru! 🔥" },
+  { count: 2, emoji: "✌️", msg: "2 habits! No cap, chal rahe ho fr fr!" },
+  { count: 3, emoji: "💪", msg: "3 habits! Sigma grindset activated bestie!" },
+  { count: 4, emoji: "⚡", msg: "4 habits! Built different ho tum yaar! 🐐" },
+  { count: 5, emoji: "🎯", msg: "5 habits! NPC nahi ho tum, GOAT ho! 👑" },
+  { count: 6, emoji: "🚀", msg: "6 habits! Ate and left no crumbs fr! 💅" },
 ];
 
+// 🔥 FIX: count ki jagah index use karo — har uncheck pe sahi message aayega
 const UNCHECK_MSGS = [
-  { count: 1, emoji: "😅", msg: "Ek miss? Koi baat nahi!" },
-  { count: 2, emoji: "😬", msg: "2 miss? Wapas aao!" },
-  { count: 3, emoji: "😢", msg: "3 miss? Arey nahi!" },
-  { count: 4, emoji: "😤", msg: "Itna uncheck? Soch lo!" },
+  { emoji: "😅", msg: "Ek uncheck? Bestie uthke karo! 😭" },
+  { emoji: "😬", msg: "2 miss? Bro really said nahi karunga 💀" },
+  { emoji: "😢", msg: "3 miss? Yeh NPC behavior hai yaar! 🗿" },
+  { emoji: "😤", msg: "Itna uncheck? Tumse na ho payega fr fr!" },
+  { emoji: "💀", msg: "Bhai kuch bhi complete nahi! Sigma kahan gaya? 😭" },
+  { emoji: "🗿", msg: "Sab uncheck? Bro really said aaj nahi! 💀" },
 ];
 
 const CONFETTI = ["🎊", "⭐", "🎉", "✨", "🌟", "💫", "🎈", "🎀"];
 
 const GIF_URLS = [
-  "https://tenor.com/embed/7303058642262868716", // Cat Girl Anime
-  "https://tenor.com/embed/12872091721290064746", // Good Boy
-  "https://tenor.com/embed/1790702977985481890", // Good Girl
-  "https://tenor.com/embed/10434643996083996562", // Original Cat Heart
+  "https://tenor.com/embed/7303058642262868716",
+  "https://tenor.com/embed/12872091721290064746",
+  "https://tenor.com/embed/1790702977985481890",
+  "https://tenor.com/embed/10434643996083996562",
 ];
 
 export default function CelebrationPopup({ doneCount, total }) {
@@ -59,7 +62,6 @@ export default function CelebrationPopup({ doneCount, total }) {
     const isCheck = doneCount > prev;
     const allDone = doneCount === total && total > 0;
 
-    // 🔥 FIX: Agar saare done hain, toh chhota popup turant hatado (Overlap bachane ke liye)
     if (allDone) {
       setPopup(null);
     }
@@ -76,20 +78,20 @@ export default function CelebrationPopup({ doneCount, total }) {
       return;
     }
 
-    // 🔥 FIX: Sirf tabhi chhota popup dikhao jab saare done NA HO
     if (!allDone) {
       if (isCheck) {
+        // Check message — count se match karo
         const found = CHECK_MSGS.find((m) => m.count === doneCount) || {
           emoji: "🏆",
-          msg: `${doneCount} habits! Zabardast!`,
+          msg: `${doneCount} habits! Zabardast no cap! 🔥`,
         };
         setPopup({ type: "check", ...found });
       } else {
+        // 🔥 FIX: missed count ko index mein clamp karo
         const missed = total - doneCount;
-        const found = UNCHECK_MSGS.find((m) => m.count === missed) || {
-          emoji: "😤",
-          msg: "Bahut uncheck kar diya!",
-        };
+        const idx = Math.min(missed - 1, UNCHECK_MSGS.length - 1);
+        const found =
+          UNCHECK_MSGS[idx] || UNCHECK_MSGS[UNCHECK_MSGS.length - 1];
         setPopup({ type: "uncheck", ...found });
       }
 
@@ -101,6 +103,7 @@ export default function CelebrationPopup({ doneCount, total }) {
 
   return (
     <>
+      {/* All done popup */}
       <div
         style={{
           position: "fixed",
@@ -129,6 +132,7 @@ export default function CelebrationPopup({ doneCount, total }) {
             maxWidth: 320,
           }}
         >
+          {/* 🔥 Saare GIFs preloaded — active wala opacity 1 */}
           <div
             style={{
               margin: "0 auto 20px",
@@ -136,18 +140,30 @@ export default function CelebrationPopup({ doneCount, total }) {
               height: 160,
               borderRadius: 16,
               overflow: "hidden",
+              position: "relative",
             }}
           >
-            <iframe
-              src={activeGif}
-              width="160"
-              height="160"
-              frameBorder="0"
-              scrolling="no"
-              allowFullScreen
-              title="Celebration Anime GIF"
-              style={{ pointerEvents: "none" }}
-            ></iframe>
+            {GIF_URLS.map((gif) => (
+              <iframe
+                key={gif}
+                src={gif}
+                width="160"
+                height="160"
+                frameBorder="0"
+                scrolling="no"
+                allowFullScreen
+                title="Celebration Anime GIF"
+                style={{
+                  pointerEvents: "none",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  minHeight: "160px",
+                  opacity: activeGif === gif ? 1 : 0,
+                  transition: "opacity 0.3s ease",
+                }}
+              />
+            ))}
           </div>
 
           <div
@@ -161,7 +177,7 @@ export default function CelebrationPopup({ doneCount, total }) {
             Saari Habits Complete! 🎉
           </div>
           <div style={{ fontSize: 15, color: "#8b949e", marginBottom: 16 }}>
-            Wah! Aaj ka din perfect raha!
+            No cap fr fr — aaj ka din GOAT raha! 🐐
           </div>
           <div style={{ fontSize: 28, letterSpacing: 6, marginBottom: 16 }}>
             🏆 🌟 🏆
@@ -172,6 +188,7 @@ export default function CelebrationPopup({ doneCount, total }) {
         </div>
       </div>
 
+      {/* Confetti */}
       {showConfetti && (
         <div
           style={{
@@ -202,7 +219,7 @@ export default function CelebrationPopup({ doneCount, total }) {
         </div>
       )}
 
-      {/* 🔥 Chhota popup sirf tab dikhega jab BIG celebration OFF ho */}
+      {/* Chhota check/uncheck popup */}
       {popup && !showAllDone && (
         <div
           style={{

@@ -59,46 +59,24 @@ export default function Settings() {
     a.click();
   };
 
-  // 🔥 YAHAN NAYA SCHEDULE ADD KIYA HAI 🔥
+  // ✅ ReminderPopup ke saath exact match
   const SCHEDULE = [
-    { label: "2m", emoji: "⏱️", msg: "2 minute ho gaye! Shuru ho jao!" },
+    { label: "1m", emoji: "⏱️", msg: "1 minute ho gaya! Shuru ho jao!" },
     {
       label: "5m",
       emoji: "⏰",
       msg: "5 minute nikal gaye! Tasks pe dhyan do!",
     },
-    {
-      label: "30m",
-      emoji: "⏳",
-      msg: "Aadha ghanta (30m)! Aadha time nikal gaya!",
-    },
+    { label: "30m", emoji: "⏳", msg: "Aadha ghanta! Aadha time nikal gaya!" },
     { label: "1h", emoji: "😤", msg: "1 ghanta ho gaya! Focus karo bhai!" },
     { label: "2h", emoji: "💪", msg: "2 ghante! Keep going, rukna mat!" },
     { label: "3h", emoji: "😱", msg: "3 ghante ho gaye! Serious ho jao!" },
-    { label: "4h", emoji: "👀", msg: "4 ghante! Piche mat raho!" },
     { label: "5h", emoji: "🔥", msg: "5 ghante! Jaldi finish karo!" },
-    { label: "6h", emoji: "🚨", msg: "6 ghante nikal gaye! Kya kar rahe ho?" },
-    {
-      label: "7h",
-      emoji: "⚠️",
-      msg: "7 ghante! Adha din khatam hone wala hai!",
-    },
-    { label: "8h", emoji: "😮‍💨", msg: "8 ghante! Thoda push karo!" },
-    { label: "9h", emoji: "🎯", msg: "9 ghante! Target poora karo!" },
-    { label: "10h", emoji: "⏳", msg: "10 ghante! Time flies!" },
-    { label: "11h", emoji: "😭", msg: "11 ghante! Kuch toh karo yaar!" },
-    { label: "12h", emoji: "🌙", msg: "12 ghante! Half day done!" },
-    { label: "13h", emoji: "😤", msg: "13 ghante! Thoda sa bacha hai!" },
-    { label: "14h", emoji: "⚡", msg: "14 ghante! Energy lao!" },
-    { label: "15h", emoji: "🏃", msg: "15 ghante! Bhag k karo!" },
-    { label: "16h", emoji: "🆘", msg: "16 ghante! Help chahiye kya?" },
-    { label: "17h", emoji: "🚨", msg: "17 ghante! Last few hours hai!" },
-    { label: "18h", emoji: "👀", msg: "18 ghante! Dekh lo bhai..." },
-    { label: "19h", emoji: "😱", msg: "19 ghante! Abhi nahi toh kab?" },
-    { label: "20h", emoji: "🤯", msg: "20 ghante! Bas 4 bache hain!" },
-    { label: "21h", emoji: "🔴", msg: "21 ghante! Sirf 3 ghante bacha hai!" },
-    { label: "22h", emoji: "⌛", msg: "22 ghante! Time khatam hone wala hai!" },
+    { label: "10h", emoji: "😱", msg: "10 ghante! Bhai serious ho jao!" },
+    { label: "16h", emoji: "🆘", msg: "16 ghante! Sirf 8 ghante bache hain!" },
+    { label: "20h", emoji: "🆘", msg: "20 ghante! Sirf 4 ghante bache hain!" },
     { label: "23h", emoji: "🆘", msg: "Sirf 1 ghanta bacha hai! ABHI KARO!" },
+    { label: "24h", emoji: "💀", msg: "24 ghante ho gaye! Kal karo fr fr! 💀" },
   ];
 
   return (
@@ -173,7 +151,6 @@ export default function Settings() {
             ))}
           </div>
 
-          {/* Status messages */}
           {notifStatus === "denied" && (
             <div className="mt-3 text-xs text-[#f85149] bg-[#3d1c1c] border border-[#6e2c2c] rounded-lg px-3 py-2">
               ⚠️ Browser ne notifications block kar diya hai! Browser settings

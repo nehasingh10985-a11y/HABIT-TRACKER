@@ -43,6 +43,9 @@ export default function Dashboard() {
   const [now, setNow] = useState(Date.now());
   const lastGifRef = useRef(null);
 
+  // 🔥 Repeating alarm interval ref
+  const alarmIntervalRef = useRef(null);
+
   const doneCount = habits.filter((h) => todayChecked[h]).length;
   const totalDays = Object.keys(data).filter((k) =>
     Object.values(data[k]).some(Boolean),
@@ -59,6 +62,36 @@ export default function Dashboard() {
     setActiveSadGif(newGif);
     lastGifRef.current = newGif;
   };
+
+  // 🔥 Alarm start — har 3 sec pe sound bajao
+  const startAlarm = () => {
+    try {
+      playReminderSound();
+    } catch (e) {}
+    if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
+    alarmIntervalRef.current = setInterval(() => {
+      try {
+        playReminderSound();
+      } catch (e) {}
+    }, 3000);
+  };
+
+  // 🔥 Alarm stop — user ne click kiya
+  const stopAlarm = () => {
+    if (alarmIntervalRef.current) {
+      clearInterval(alarmIntervalRef.current);
+      alarmIntervalRef.current = null;
+    }
+    setAlarmHabit(null);
+    setActiveSadGif(null);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (alarmIntervalRef.current) clearInterval(alarmIntervalRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -80,9 +113,7 @@ export default function Dashboard() {
           if (!todayChecked[habit]) {
             pickDifferentSadGif();
             setAlarmHabit(habit);
-            try {
-              playReminderSound();
-            } catch (e) {}
+            startAlarm(); // 🔥 Repeating alarm shuru
           }
           delete currentDeadlines[habit];
           updated = true;
@@ -140,6 +171,8 @@ export default function Dashboard() {
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
+  const isAlarmOpen = !!(alarmHabit && activeSadGif);
+
   return (
     <div className="dashboard-container">
       <h1 className="text-2xl font-bold mb-1">Habit Tracker</h1>
@@ -147,7 +180,6 @@ export default function Dashboard() {
         Track daily habits — streaks & timers
       </p>
 
-      {/* ✅ StatCards with icons */}
       <div className="flex gap-3 flex-wrap mb-6">
         <StatCard
           value={`${doneCount}/${habits.length}`}
@@ -271,100 +303,122 @@ export default function Dashboard() {
       <MotivationBox doneCount={doneCount} total={habits.length} />
       <CelebrationPopup doneCount={doneCount} total={habits.length} />
 
-      {/* Alarm popup — sirf tab dikhe jab alarmHabit aur GIF dono ho */}
-      {alarmHabit && activeSadGif && (
+      {/* 🔥 Alarm popup — GIFs preloaded, sound tab tak bajta rahe jab tak user click na kare */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.85)",
+          zIndex: 10003,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: isAlarmOpen ? 1 : 0,
+          pointerEvents: isAlarmOpen ? "auto" : "none",
+          transition: "opacity 0.3s ease",
+        }}
+      >
         <div
           style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            zIndex: 10003, // ReminderPopup (10000) se upar
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            animation: "fadeIn 0.3s ease",
+            background: "#161b22",
+            border: "2px solid #f85149",
+            borderRadius: 20,
+            padding: "30px",
+            textAlign: "center",
+            maxWidth: 320,
+            transform: isAlarmOpen ? "scale(1)" : "scale(0.8)",
+            transition:
+              "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
           }}
         >
+          {/* Saare GIFs preloaded */}
           <div
             style={{
-              background: "#161b22",
-              border: "2px solid #f85149",
-              borderRadius: 20,
-              padding: "30px",
-              textAlign: "center",
-              maxWidth: 320,
-              animation: "popIn 0.4s ease",
+              margin: "0 auto 20px",
+              width: 160,
+              height: 160,
+              borderRadius: 16,
+              overflow: "hidden",
+              position: "relative",
             }}
           >
-            <div
-              style={{
-                margin: "0 auto 20px",
-                width: 160,
-                height: 160,
-                borderRadius: 16,
-                overflow: "hidden",
-              }}
-            >
+            {SAD_GIFS.map((gif) => (
               <iframe
-                key={activeSadGif}
-                src={activeSadGif}
+                key={gif}
+                src={gif}
                 width="160"
                 height="160"
                 frameBorder="0"
                 scrolling="no"
                 allowFullScreen
-                style={{ pointerEvents: "none" }}
+                style={{
+                  pointerEvents: "none",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  opacity: activeSadGif === gif ? 1 : 0,
+                  transition: "opacity 0.3s ease",
+                  minHeight: "160px",
+                }}
               />
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: "bold",
-                color: "#f85149",
-                marginBottom: 8,
-              }}
-            >
-              Time's Up! 😭
-            </div>
-            <div style={{ fontSize: 14, color: "#e6edf3", marginBottom: 20 }}>
-              Aapka <strong>"{alarmHabit}"</strong> miss ho gaya... 💔
-            </div>
-            <button
-              onClick={() => {
-                setAlarmHabit(null);
-                setActiveSadGif(null);
-              }}
-              style={{
-                background: "#f85149",
-                color: "#fff",
-                border: "none",
-                padding: "10px 24px",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: "bold",
-                cursor: "pointer",
-                width: "100%",
-              }}
-            >
-              Abhi karta hoon! 🥺
-            </button>
+            ))}
           </div>
-        </div>
-      )}
 
-      {/* ✅ onGoToDashboard + disabled jab alarm open ho */}
+          <div
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: "#f85149",
+              marginBottom: 8,
+            }}
+          >
+            Time's Up! 😭
+          </div>
+          <div style={{ fontSize: 14, color: "#e6edf3", marginBottom: 4 }}>
+            Aapka <strong>"{alarmHabit}"</strong> miss ho gaya... 💔
+          </div>
+          {/* 🔥 Pulsing text jab tak alarm band na ho */}
+          <div
+            style={{
+              fontSize: 11,
+              color: "#f85149",
+              marginBottom: 20,
+              animation: "pulse 1s infinite",
+            }}
+          >
+            🔔 Band karne ke liye button dabao...
+          </div>
+          <button
+            onClick={stopAlarm}
+            style={{
+              background: "#f85149",
+              color: "#fff",
+              border: "none",
+              padding: "10px 24px",
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: "bold",
+              cursor: "pointer",
+              width: "100%",
+            }}
+          >
+            Abhi karta hoon! 🥺
+          </button>
+        </div>
+      </div>
+
       <ReminderPopup
         habits={habits}
         todayChecked={todayChecked}
         onGoToDashboard={scrollToTop}
-        disabled={!!(alarmHabit && activeSadGif)}
+        disabled={isAlarmOpen}
       />
 
       <style>{`
         .no-spinner::-webkit-inner-spin-button,
         .no-spinner::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spinner { -moz-appearance: textfield; }
-        @keyframes pulse { 0%{opacity:1} 50%{opacity:0.6} 100%{opacity:1} }
+        @keyframes pulse { 0%{opacity:1} 50%{opacity:0.5} 100%{opacity:1} }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
       `}</style>

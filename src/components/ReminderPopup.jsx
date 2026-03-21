@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { playReminderSound } from "../utils/sounds";
 
-const REMINDERS = [
+const REMINDERS_RAW = [
   {
     hours: 0,
-    mins: 2,
+    mins: 1,
     emoji: "⏱️",
-    msg: "2 minute ho gaye! Shuru ho jao!",
+    msg: "1 minute ho gaya! Shuru ho jao!",
     color: "#58a6ff",
   },
   {
@@ -20,7 +20,7 @@ const REMINDERS = [
     hours: 0,
     mins: 30,
     emoji: "⏳",
-    msg: "Aadha ghanta (30m)! Aadha time nikal gaya!",
+    msg: "Aadha ghanta! Aadha time nikal gaya!",
     color: "#f0883e",
   },
   {
@@ -52,13 +52,46 @@ const REMINDERS = [
     color: "#f85149",
   },
   {
+    hours: 10,
+    mins: 0,
+    emoji: "😱",
+    msg: "10 ghante! Bhai serious ho jao!",
+    color: "#f85149",
+  },
+  {
+    hours: 16,
+    mins: 0,
+    emoji: "🆘",
+    msg: "16 ghante! Sirf 8 ghante bache hain!",
+    color: "#f85149",
+  },
+  {
+    hours: 20,
+    mins: 0,
+    emoji: "🆘",
+    msg: "20 ghante! Sirf 4 ghante bache hain!",
+    color: "#f85149",
+  },
+  {
     hours: 23,
     mins: 0,
     emoji: "🆘",
     msg: "Sirf 1 ghanta bacha hai! ABHI KARO!",
     color: "#f85149",
   },
+  {
+    hours: 24,
+    mins: 0,
+    emoji: "💀",
+    msg: "24 ghante ho gaye! Kal karo fr fr! 💀",
+    color: "#f85149",
+  },
 ];
+
+const REMINDERS = REMINDERS_RAW.map((r) => ({
+  ...r,
+  totalSecs: r.hours * 3600 + r.mins * 60,
+}));
 
 const SNOOZE_SECONDS = [1, 3, 5, 7, 9];
 
@@ -112,6 +145,21 @@ const GO_MSGS = [
     desc: "Consistency hits different bestie! 🔥",
   },
 ];
+
+const GO_GIFS = [
+  "https://tenor.com/embed/12413845295037633769",
+  "https://tenor.com/embed/7303058642262868716",
+  "https://tenor.com/embed/12872091721290064746",
+  "https://tenor.com/embed/1790702977985481890",
+  "https://tenor.com/embed/10434643996083996562",
+];
+
+// 🔥 Module level session start
+const SESSION_START_KEY = "app_start_time";
+if (!sessionStorage.getItem(SESSION_START_KEY)) {
+  sessionStorage.setItem(SESSION_START_KEY, String(Date.now()));
+}
+const SESSION_START = parseInt(sessionStorage.getItem(SESSION_START_KEY), 10);
 
 function AnimatedCharacter({ emoji, color }) {
   return (
@@ -174,38 +222,65 @@ export default function ReminderPopup({
   const [snoozeCount, setSnoozeCount] = useState(0);
   const [countdown, setCountdown] = useState(0);
   const [goMsg, setGoMsg] = useState(null);
+  const [activeGif, setActiveGif] = useState(GO_GIFS[0]);
+  const [firedKeys, setFiredKeys] = useState({});
 
-  const [sessionStart] = useState(() => {
-    let start = sessionStorage.getItem("app_start_time");
-    if (!start) {
-      start = Date.now();
-      sessionStorage.setItem("app_start_time", start);
-    }
-    return parseInt(start, 10);
-  });
-
-  const [firedKeys, setFiredKeys] = useState(() => {
-    const saved = localStorage.getItem("fired_reminders");
-    return saved ? JSON.parse(saved) : {};
-  });
-
+  const lastGifRef = useRef(null);
   const timers = useRef([]);
   const snoozeTimer = useRef(null);
   const countdownInterval = useRef(null);
+  const alarmInterval = useRef(null);
 
   const getPendingHabits = () => habits.filter((h) => !todayChecked[h]);
   const allDone = habits.length > 0 && habits.every((h) => todayChecked[h]);
 
+  const startRepeatingAlarm = () => {
+    try {
+      playReminderSound();
+    } catch (e) {}
+    if (alarmInterval.current) clearInterval(alarmInterval.current);
+    alarmInterval.current = setInterval(() => {
+      try {
+        playReminderSound();
+      } catch (e) {}
+    }, 3000);
+  };
+
+  const stopRepeatingAlarm = () => {
+    if (alarmInterval.current) {
+      clearInterval(alarmInterval.current);
+      alarmInterval.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopRepeatingAlarm();
+      timers.current.forEach(clearTimeout);
+      if (snoozeTimer.current) clearTimeout(snoozeTimer.current);
+      if (countdownInterval.current) clearInterval(countdownInterval.current);
+    };
+  }, []);
+
   useEffect(() => {
     const todayStr = new Date().toDateString();
     const lastDate = localStorage.getItem("reminder_last_date");
+    const saved = localStorage.getItem("fired_reminders");
     if (lastDate !== todayStr) {
       localStorage.setItem("fired_reminders", JSON.stringify({}));
       localStorage.setItem("reminder_last_date", todayStr);
-      sessionStorage.setItem("app_start_time", Date.now());
       setFiredKeys({});
+    } else {
+      setFiredKeys(saved ? JSON.parse(saved) : {});
     }
   }, []);
+
+  const pickDifferentGif = () => {
+    const remaining = GO_GIFS.filter((g) => g !== lastGifRef.current);
+    const picked = remaining[Math.floor(Math.random() * remaining.length)];
+    setActiveGif(picked);
+    lastGifRef.current = picked;
+  };
 
   const sendNotification = (emoji, msg, pendingHabits) => {
     if (Notification.permission !== "granted") return;
@@ -227,26 +302,27 @@ export default function ReminderPopup({
     setSnoozeCount(0);
     setCountdown(0);
     setGoMsg(null);
-    playReminderSound();
+    startRepeatingAlarm();
     sendNotification(emoji, msg, pendingHabits);
   };
 
   useEffect(() => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
+
     if (habits.length === 0 || allDone) return;
 
     const todayStr = new Date().toDateString();
-    REMINDERS.forEach(({ hours = 0, mins = 0, emoji, msg, color }) => {
-      const totalMins = hours * 60 + mins;
-      const targetTimeMs = sessionStart + totalMins * 60 * 1000;
-      const currentTimeMs = Date.now();
-      const key = `rp_session_${hours}h_${mins}m_${todayStr}`;
+    const now = Date.now();
+
+    REMINDERS.forEach(({ totalSecs, emoji, msg, color }) => {
+      const targetMs = SESSION_START + totalSecs * 1000;
+      const key = `rp_${totalSecs}s_${todayStr}`;
 
       if (firedKeys[key]) return;
-      if (currentTimeMs >= targetTimeMs) return;
+      if (now >= targetMs) return;
 
-      const msUntil = targetTimeMs - currentTimeMs;
+      const msUntil = targetMs - now;
       const t = setTimeout(() => {
         const p = getPendingHabits();
         if (p.length === 0) return;
@@ -255,13 +331,15 @@ export default function ReminderPopup({
         localStorage.setItem("fired_reminders", JSON.stringify(newFired));
         showPopup(emoji, msg, p, color);
       }, msUntil);
+
       timers.current.push(t);
     });
 
     return () => timers.current.forEach(clearTimeout);
-  }, [allDone, habits.length, firedKeys, sessionStart, todayChecked]);
+  }, [allDone, habits.length, firedKeys]);
 
   const handleSnooze = () => {
+    stopRepeatingAlarm();
     const idx = Math.min(snoozeCount, SNOOZE_SECONDS.length - 1);
     const sec = SNOOZE_SECONDS[idx];
     setSnoozed(true);
@@ -287,7 +365,7 @@ export default function ReminderPopup({
       }
       setSnoozed(false);
       setCountdown(0);
-      playReminderSound();
+      startRepeatingAlarm();
       setPopup((prev) => (prev ? { ...prev, _ts: Date.now() } : null));
     }, sec * 1000);
   };
@@ -297,17 +375,16 @@ export default function ReminderPopup({
     setCountdown(0);
     if (snoozeTimer.current) clearTimeout(snoozeTimer.current);
     if (countdownInterval.current) clearInterval(countdownInterval.current);
-    playReminderSound();
+    startRepeatingAlarm();
   };
 
   const handleGo = () => {
+    stopRepeatingAlarm();
     const msg = GO_MSGS[Math.floor(Math.random() * GO_MSGS.length)];
     if (snoozeTimer.current) clearTimeout(snoozeTimer.current);
     if (countdownInterval.current) clearInterval(countdownInterval.current);
-
+    pickDifferentGif();
     setGoMsg(msg);
-
-    // 2.5 second baad close
     setTimeout(() => {
       setPopup(null);
       setGoMsg(null);
@@ -351,31 +428,43 @@ export default function ReminderPopup({
           position: "relative",
         }}
       >
-        {/* 🔥 ZERO DELAY MAGIC: GIF hamesha loaded rahega par hidden 🔥 */}
+        {/* GIFs preloaded */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: goMsg ? "180px" : "0px",
-            opacity: goMsg ? 1 : 0,
             overflow: "hidden",
-            transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            transition:
+              "max-height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, margin-bottom 0.4s ease",
             marginBottom: goMsg ? "16px" : "0px",
             pointerEvents: "none",
             width: "100%",
+            maxHeight: goMsg ? "180px" : "0px",
+            opacity: goMsg ? 1 : 0,
+            position: "relative",
+            height: goMsg ? 160 : 0,
           }}
         >
-          <iframe
-            src="https://tenor.com/embed/12413845295037633769"
-            width="160"
-            height="160"
-            frameBorder="0"
-            scrolling="no"
-            allowFullScreen
-            title="Gato Coracao GIF"
-            style={{ display: "block" }}
-          />
+          {GO_GIFS.map((gif) => (
+            <iframe
+              key={gif}
+              src={gif}
+              width="160"
+              height="160"
+              frameBorder="0"
+              scrolling="no"
+              allowFullScreen
+              title="Go GIF"
+              style={{
+                display: "block",
+                minHeight: "160px",
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translateX(-50%)",
+                opacity: activeGif === gif ? 1 : 0,
+                transition: "opacity 0.3s ease",
+              }}
+            />
+          ))}
         </div>
 
         {goMsg ? (
@@ -437,7 +526,7 @@ export default function ReminderPopup({
                       fontWeight: 600,
                     }}
                   >
-                    ⏱️ {countdown} sec
+                    ⏱️ {countdown} sec — phir bajega 🔔
                   </div>
                 )}
               </div>
@@ -457,11 +546,21 @@ export default function ReminderPopup({
                   style={{
                     fontSize: 14,
                     color: "#e6edf3",
-                    marginBottom: 14,
+                    marginBottom: 6,
                     lineHeight: 1.5,
                   }}
                 >
                   {popup.msg}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#f85149",
+                    marginBottom: 10,
+                    animation: "pulse 1s infinite",
+                  }}
+                >
+                  🔔 Bajta rahega jab tak choose na karo...
                 </div>
               </>
             )}
@@ -599,6 +698,7 @@ export default function ReminderPopup({
         @keyframes shake { 0%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} 100%{transform:translateX(0)} }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+        @keyframes pulse { 0%{opacity:1} 50%{opacity:0.4} 100%{opacity:1} }
       `}</style>
     </div>
   );
