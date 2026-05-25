@@ -4,7 +4,7 @@
 
 ## 🌐 Live Demo
 
-**👉 [habit-tracker-eta-blond.vercel.app](habit-tracker-three-phi-36.vercel.app)**
+**👉 [habit-tracker-eta-blond.vercel.app](https://habit-tracker-three-phi-36.vercel.app/)**
 
 ## 📂 Repository
 
